@@ -279,7 +279,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
         <CardContent className="pt-6">
           <div className="text-center">
             <div className="text-4xl font-bold text-primary">
-              {formatNumber(result.lcoe, 2)} ZAR/kWh
+              {formatNumber(result.lcoe, 2)} CNY/kWh
             </div>
             <p className="text-sm text-muted-foreground mt-2">
               项目全生命周期平均度电成本

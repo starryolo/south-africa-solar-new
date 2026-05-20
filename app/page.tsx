@@ -150,7 +150,7 @@ export default function HomePage() {
             <li>��再生能源投资在南非可享受加速折旧优惠政策</li>
             <li>南非电网可靠性约 70%，储能系统可提供备用电源价值</li>
             <li>所有计算结果仅供参考，实际投资需进行详细可行性研究</li>
-            <li>货币单位：南非兰特 (ZAR)，1 USD ≈ 18.5 ZAR (参考汇率)</li>
+            <li>货币单位：人民币 (CNY)</li>
             <li className="text-primary font-medium">数据实时联动：修改任何参数后，计算结果自动更新</li>
           </ul>
         </div>

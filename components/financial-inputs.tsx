@@ -58,7 +58,7 @@ export function FinancialInputs({ config, onChange }: FinancialInputsProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="electricityBuyPrice">电网购电价 (ZAR/kWh): {config.electricityBuyPrice}</Label>
+              <Label htmlFor="electricityBuyPrice">电网购电价 (CNY/kWh): {config.electricityBuyPrice}</Label>
               <Slider
                 value={[config.electricityBuyPrice]}
                 onValueChange={([value]) => updateConfig("electricityBuyPrice", value)}
@@ -66,10 +66,10 @@ export function FinancialInputs({ config, onChange }: FinancialInputsProps) {
                 max={5}
                 step={0.05}
               />
-              <p className="text-xs text-muted-foreground">南非商业电价约 2.5-3.5 ZAR</p>
+              <p className="text-xs text-muted-foreground">商业电价约 0.5-1.5 CNY</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="electricitySellPrice">上网售电价 (ZAR/kWh): {config.electricitySellPrice}</Label>
+              <Label htmlFor="electricitySellPrice">上网售电价 (CNY/kWh): {config.electricitySellPrice}</Label>
               <Slider
                 value={[config.electricitySellPrice]}
                 onValueChange={([value]) => updateConfig("electricitySellPrice", value)}

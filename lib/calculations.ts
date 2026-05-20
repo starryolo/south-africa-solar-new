@@ -4,29 +4,29 @@ export interface SystemConfig {
   // 光伏系统
   pvPanelPower: number // 单块光伏板功率 (W)
   pvPanelCount: number // 光伏板数量
-  pvPanelPrice: number // 单块光伏板价格 (ZAR)
-  pvInstallationCost: number // 安装成本 (ZAR/kW)
+  pvPanelPrice: number // 单块光伏板价格 (CNY)
+  pvInstallationCost: number // 安装成本 (CNY/kW)
   
   // 储能系统
   batteryCapacity: number // 单块电池容量 (kWh)
   batteryCount: number // 电池数量
-  batteryPrice: number // 单块电池价格 (ZAR)
+  batteryPrice: number // 单块电池价格 (CNY)
   batteryDOD: number // 放电深度 (%)
   
   // 充电桩
   chargerPower: number // 单桩功率 (kW)
   chargerCount: number // 充电桩数量
-  chargerPrice: number // 单桩价格 (ZAR)
+  chargerPrice: number // 单桩价格 (CNY)
   
   // 逆变器
   inverterPower: number // 逆变器功率 (kW)
   inverterCount: number // 逆变器数量
-  inverterPrice: number // 单台逆变器价格 (ZAR)
+  inverterPrice: number // 单台逆变器价格 (CNY)
   
   // 运营参数
-  electricityBuyPrice: number // 电网购电价格 (ZAR/kWh)
-  electricitySellPrice: number // 售电价格 (ZAR/kWh) - 如果允许上网
-  chargingPrice: number // 充电桩收费价格 (ZAR/kWh)
+  electricityBuyPrice: number // 电网购电价格 (CNY/kWh)
+  electricitySellPrice: number // 售电价格 (CNY/kWh) - 如果允许上网
+  chargingPrice: number // 充电桩收费价格 (CNY/kWh)
   dailyChargingHours: number // 日均充电小时数
   chargerUtilization: number // 充电桩利用率 (%)
   
@@ -87,7 +87,7 @@ export interface CalculationResult {
   npv: number // 净现值
   irr: number // 内部收益率 (%)
   roi: number // 投资回报率 (%)
-  lcoe: number // 平准化度电成本 (ZAR/kWh)
+  lcoe: number // 平准化度电成本 (CNY/kWh)
   
   // 25年现金流
   cashFlows: YearlyData[]
@@ -120,7 +120,7 @@ export interface InverterModel {
   name: string
   power: number // kW
   efficiency: number // %
-  price: number // ZAR
+  price: number // CNY
   type: 'string' | 'hybrid' | 'central'
   description: string
   maxDCInput: number // kW
@@ -296,29 +296,29 @@ export function recommendInverter(pvCapacityKW: number): InverterModel[] {
     .slice(0, 5)
 }
 
-// 南非默认参数
+// 默认参数 (人民币)
 export const SOUTH_AFRICA_DEFAULTS: SystemConfig = {
   pvPanelPower: 625,
   pvPanelCount: 100,
-  pvPanelPrice: 2800, // ZAR
-  pvInstallationCost: 8000, // ZAR/kW
+  pvPanelPrice: 1200, // CNY
+  pvInstallationCost: 3500, // CNY/kW
   
-  batteryCapacity: 5.12,
+  batteryCapacity: 10,
   batteryCount: 10,
-  batteryPrice: 18000, // ZAR
+  batteryPrice: 8000, // CNY
   batteryDOD: 90,
   
   chargerPower: 7,
   chargerCount: 4,
-  chargerPrice: 35000, // ZAR
+  chargerPrice: 18000, // CNY
   
   inverterPower: 15,
   inverterCount: 5,
-  inverterPrice: 45000, // ZAR
+  inverterPrice: 8000, // CNY
   
-  electricityBuyPrice: 2.85, // ZAR/kWh (商业电价)
-  electricitySellPrice: 1.20, // ZAR/kWh
-  chargingPrice: 4.50, // ZAR/kWh
+  electricityBuyPrice: 0.85, // CNY/kWh (商业电价)
+  electricitySellPrice: 0.35, // CNY/kWh
+  chargingPrice: 1.50, // CNY/kWh
   dailyChargingHours: 8,
   chargerUtilization: 60,
   
@@ -633,7 +633,7 @@ export function verifyIRR(cashFlows: number[], irr: number): {
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('zh-CN', {
     style: 'currency',
-    currency: 'ZAR',
+    currency: 'CNY',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value)

@@ -83,7 +83,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="pvPanelPrice">单块价格 (ZAR)</Label>
+              <Label htmlFor="pvPanelPrice">单块价格 (CNY)</Label>
               <Input
                 id="pvPanelPrice"
                 type="number"
@@ -93,7 +93,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pvInstallationCost">安装成本 (ZAR/kW)</Label>
+              <Label htmlFor="pvInstallationCost">安装成本 (CNY/kW)</Label>
               <Input
                 id="pvInstallationCost"
                 type="number"
@@ -183,7 +183,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="batteryPrice">单块价格 (ZAR)</Label>
+              <Label htmlFor="batteryPrice">单块价格 (CNY)</Label>
               <Input
                 id="batteryPrice"
                 type="number"
@@ -272,7 +272,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="chargerPrice">单桩价格 (ZAR)</Label>
+              <Label htmlFor="chargerPrice">单桩价格 (CNY)</Label>
               <Input
                 id="chargerPrice"
                 type="number"
@@ -295,7 +295,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="chargingPrice">充电价格 (ZAR/kWh)</Label>
+              <Label htmlFor="chargingPrice">充电价格 (CNY/kWh)</Label>
               <Input
                 id="chargingPrice"
                 type="number"
@@ -389,7 +389,7 @@ export function SystemInputs({ config, onChange }: SystemInputsProps) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="inverterPrice">单台价格 (ZAR)</Label>
+            <Label htmlFor="inverterPrice">单台价格 (CNY)</Label>
             <Input
               id="inverterPrice"
               type="number"

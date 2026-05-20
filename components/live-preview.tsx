@@ -160,19 +160,19 @@ export function LivePreview({ config, result }: LivePreviewProps) {
           <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
             <div className="flex flex-col gap-0.5">
               <span className="text-muted-foreground">总投资</span>
-              <span className="font-medium">{formatNumber(result.totalInvestment / 1000000, 2)}M ZAR</span>
+              <span className="font-medium">{formatNumber(result.totalInvestment / 10000, 2)}万 CNY</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-muted-foreground">年总收益</span>
-              <span className="font-medium text-primary">{formatNumber(result.annualTotalRevenue / 1000, 0)}K ZAR</span>
+              <span className="font-medium text-primary">{formatNumber(result.annualTotalRevenue / 10000, 0)}万 CNY</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-muted-foreground">年净利润</span>
-              <span className="font-medium text-primary">{formatNumber(result.annualNetProfit / 1000, 0)}K ZAR</span>
+              <span className="font-medium text-primary">{formatNumber(result.annualNetProfit / 10000, 0)}万 CNY</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-muted-foreground">度电成本</span>
-              <span className="font-medium">{formatNumber(result.lcoe, 2)} ZAR</span>
+              <span className="font-medium">{formatNumber(result.lcoe, 2)} CNY/kWh</span>
             </div>
           </div>
         </CardContent>
