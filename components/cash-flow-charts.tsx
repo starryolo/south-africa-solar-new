@@ -118,7 +118,7 @@ export function CashFlowCharts({ result }: CashFlowChartsProps) {
         <CardContent className="pt-6">
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cashFlowData}>
+              <BarChart data={cashFlowData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="yearNum" 
@@ -131,16 +131,11 @@ export function CashFlowCharts({ result }: CashFlowChartsProps) {
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Area
-                  type="monotone"
+                <Bar
                   dataKey="发电量"
                   fill="#8884d8"
-                  fillOpacity={0.3}
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
