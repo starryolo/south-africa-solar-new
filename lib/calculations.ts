@@ -110,7 +110,7 @@ export interface YearlyData {
 export const GCL_625W_SPECS = {
   power: 625, // W
   efficiency: 0.213, // 21.3% 效率
-  area: 2.384 * 1.303, // 约 3.1 m²
+  area: 2.7, // 2.7 m²
   degradationRate: 0.004, // 年衰减率 0.4%
 }
 
