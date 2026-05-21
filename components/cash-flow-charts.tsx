@@ -131,10 +131,12 @@ export function CashFlowCharts({ result }: CashFlowChartsProps) {
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="发电量"
-                  stroke="hsl(var(--chart-4))"
+                  fill="#8884d8"
+                  fillOpacity={0.3}
+                  stroke="#8884d8"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                 />
