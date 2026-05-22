@@ -109,7 +109,7 @@ export interface YearlyData {
 // 协鑫625W双玻光伏板参数
 export const GCL_625W_SPECS = {
   power: 625, // W
-  efficiency: 0.213, // 21.3% 效率
+  efficiency: 0.2314, // 23.14% 效率
   area: 2.7, // 2.7 m²
   degradationRate: 0.004, // 年衰减率 0.4%
 }
