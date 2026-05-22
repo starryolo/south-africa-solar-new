@@ -612,6 +612,38 @@ function newtonRaphsonIRR(
   return rate
 }
 
+// IRR计算详情
+export interface IRRCalculationDetail {
+  year: number
+  cashFlow: number
+  discountFactor: number
+  discountedCashFlow: number
+  cumulativeNPV: number
+}
+
+// 获取IRR计算的详细步骤
+export function getIRRCalculationDetails(cashFlows: number[], irr: number): IRRCalculationDetail[] {
+  const rate = irr / 100
+  const details: IRRCalculationDetail[] = []
+  let cumulativeNPV = 0
+  
+  for (let t = 0; t < cashFlows.length; t++) {
+    const discountFactor = 1 / Math.pow(1 + rate, t)
+    const discountedCashFlow = cashFlows[t] * discountFactor
+    cumulativeNPV += discountedCashFlow
+    
+    details.push({
+      year: t,
+      cashFlow: cashFlows[t],
+      discountFactor,
+      discountedCashFlow,
+      cumulativeNPV
+    })
+  }
+  
+  return details
+}
+
 // 验证IRR计算结果 (反向验证NPV是否接近0)
 export function verifyIRR(cashFlows: number[], irr: number): { 
   isValid: boolean

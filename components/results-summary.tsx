@@ -1,10 +1,11 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalculationResult, formatCurrency, formatNumber, verifyIRR, SystemConfig } from "@/lib/calculations"
+import { CalculationResult, formatCurrency, formatNumber, verifyIRR, SystemConfig, getIRRCalculationDetails } from "@/lib/calculations"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useMemo } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMemo, useState } from "react"
 
 interface ResultsSummaryProps {
   result: CalculationResult
@@ -345,6 +346,73 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
               <strong>计算方法:</strong> 采用二分法确定初始范围，再使用牛顿-拉弗森法精化结果，
               迭代精度设置为 1e-10。IRR 是使项目净现值 (NPV) 等于零的折现率，
               即满足 NPV = -初始投资 + Σ(年现金流 / (1+IRR)^t) = 0 的 IRR 值。
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* IRR计算详情表格 */}
+      <Card className="border-2 border-primary">
+        <CardHeader className="bg-primary text-primary-foreground">
+          <CardTitle>IRR计算详细步骤</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="mb-4 p-4 bg-muted rounded-lg">
+            <h4 className="font-medium mb-2">IRR计算公式</h4>
+            <div className="font-mono text-sm bg-background p-3 rounded border">
+              NPV = CF₀ + CF₁/(1+r)¹ + CF₂/(1+r)² + ... + CF₂₅/(1+r)²⁵ = 0
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              其中: CF₀ = -初始投资, r = IRR, CFᵗ = 第t年净现金流
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left py-2 px-2">年份</th>
+                  <th className="text-right py-2 px-2">年现金流</th>
+                  <th className="text-right py-2 px-2">折现因子 (1/(1+r)ᵗ)</th>
+                  <th className="text-right py-2 px-2">折现现金流</th>
+                  <th className="text-right py-2 px-2">累计NPV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const cashFlows = [-result.totalInvestment, ...result.cashFlows.map(cf => cf.netCashFlow)]
+                  const details = getIRRCalculationDetails(cashFlows, result.irr)
+                  return details.map((detail) => (
+                    <tr key={detail.year} className="border-b border-border hover:bg-muted/30">
+                      <td className="py-2 px-2">
+                        {detail.year === 0 ? '第0年' : `第${detail.year}年`}
+                      </td>
+                      <td className="text-right py-2 px-2 font-mono">
+                        {formatCurrency(detail.cashFlow)}
+                      </td>
+                      <td className="text-right py-2 px-2 font-mono">
+                        {detail.discountFactor.toFixed(6)}
+                      </td>
+                      <td className="text-right py-2 px-2 font-mono">
+                        {formatCurrency(detail.discountedCashFlow)}
+                      </td>
+                      <td className="text-right py-2 px-2 font-mono">
+                        {formatCurrency(detail.cumulativeNPV)}
+                      </td>
+                    </tr>
+                  ))
+                })()}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">IRR值:</span>
+              <span className="font-bold text-lg text-primary">{result.irr.toFixed(4)}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              使用此折现率计算，最终累计NPV应接近0
             </p>
           </div>
         </CardContent>
