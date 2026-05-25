@@ -1,11 +1,11 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalculationResult, formatCurrency, formatNumber, verifyIRR, SystemConfig, getIRRCalculationDetails } from "@/lib/calculations"
+import { CalculationResult, formatNumber, verifyIRR, SystemConfig, getIRRCalculationDetails } from "@/lib/calculations"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useMemo, useState } from "react"
+import { useApp } from "@/lib/app-context"
+import { t, formatCurrency, formatProfit, convertCurrency } from "@/lib/i18n"
 
 interface ResultsSummaryProps {
   result: CalculationResult
@@ -13,19 +13,28 @@ interface ResultsSummaryProps {
 }
 
 export function ResultsSummary({ result, config }: ResultsSummaryProps) {
+  const { language, currency } = useApp()
+  
   // 验证IRR计算精度
-  const irrVerification = useMemo(() => {
-    const cashFlows = [-result.totalInvestment, ...result.cashFlows.map(cf => cf.netCashFlow)]
-    return verifyIRR(cashFlows, result.irr)
-  }, [result])
+  const irrVerification = verifyIRR([-result.totalInvestment, ...result.cashFlows.map(cf => cf.netCashFlow)], result.irr)
 
   // IRR精度等级判定
-  const irrPrecisionLevel = useMemo(() => {
-    if (irrVerification.precision < 0.01) return { label: "极高精度", color: "bg-green-500" }
-    if (irrVerification.precision < 0.1) return { label: "高精度", color: "bg-green-400" }
-    if (irrVerification.precision < 1) return { label: "中等精度", color: "bg-yellow-500" }
-    return { label: "低精度", color: "bg-red-500" }
-  }, [irrVerification])
+  const getIRRPrecisionLabel = () => {
+    if (irrVerification.precision < 0.01) return language === 'zh' ? '极高精度' : 'Extreme Precision'
+    if (irrVerification.precision < 0.1) return language === 'zh' ? '高精度' : 'High Precision'
+    if (irrVerification.precision < 1) return language === 'zh' ? '中等精度' : 'Medium Precision'
+    return language === 'zh' ? '低精度' : 'Low Precision'
+  }
+  
+  const getVerificationStatus = () => {
+    return irrVerification.isValid ? (language === 'zh' ? '通过' : 'Pass') : (language === 'zh' ? '需复核' : 'Review Required')
+  }
+
+  // 格式化年份显示
+  const formatYearLabel = (year: number) => {
+    if (year === 0) return language === 'zh' ? '第0年' : 'Year 0'
+    return language === 'zh' ? `第${year}年` : `Year ${year}`
+  }
 
   return (
     <TooltipProvider>
@@ -35,15 +44,15 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
         <Card className="border-2 border-primary bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              简单回收期
+              {t('simplePayback', language)}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">
-              {formatNumber(result.simplePaybackYears, 1)} 年
+              {formatNumber(result.simplePaybackYears, 1)} {language === 'zh' ? '年' : 'yr'}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              投资回本时间
+              {language === 'zh' ? '投资回本时间' : 'Time to recover investment'}
             </p>
           </CardContent>
         </Card>
@@ -51,19 +60,19 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
         <Card className="border-2 border-primary bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-              <span>内部收益率 IRR</span>
+              <span>{t('irr', language)}</span>
               <Tooltip>
                 <TooltipTrigger>
-                  <Badge variant="outline" className={`${irrPrecisionLevel.color} text-white text-xs`}>
-                    {irrPrecisionLevel.label}
+                  <Badge variant="outline" className={`${irrVerification.precision < 0.01 ? 'bg-green-500' : irrVerification.precision < 0.1 ? 'bg-green-400' : irrVerification.precision < 1 ? 'bg-yellow-500' : 'bg-red-500'} text-white text-xs`}>
+                    {getIRRPrecisionLabel()}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <div className="space-y-1 text-xs">
-                    <p>IRR验证: NPV@IRR = {irrVerification.npvAtIRR.toFixed(6)}</p>
-                    <p>精度误差: {irrVerification.precision.toExponential(2)}</p>
-                    <p>算法: 二分法 + 牛顿-拉弗森法</p>
-                    <p>迭代精度: 1e-10</p>
+                    <p>IRR {language === 'zh' ? '验证' : 'Verification'}: NPV@IRR = {irrVerification.npvAtIRR.toFixed(6)}</p>
+                    <p>{language === 'zh' ? '精度误差' : 'Precision Error'}: {irrVerification.precision.toExponential(2)}</p>
+                    <p>{language === 'zh' ? '算法' : 'Algorithm'}: Binary + Newton-Raphson</p>
+                    <p>{language === 'zh' ? '迭代精度' : 'Iteration Precision'}: 1e-10</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -74,7 +83,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
               {formatNumber(result.irr, 4)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              精确值: {result.irr.toFixed(8)}%
+              {language === 'zh' ? '精确值' : 'Precise Value'}: {result.irr.toFixed(8)}%
             </p>
           </CardContent>
         </Card>
@@ -82,15 +91,15 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
         <Card className="border-2 border-primary bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              净现值 NPV
+              {t('npv', language)}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${result.npv >= 0 ? 'text-primary' : 'text-destructive'}`}>
-              {formatCurrency(result.npv)}
+              {formatCurrency(result.npv, currency, language)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              项目净现值
+              {language === 'zh' ? '项目净现值' : 'Project Net Present Value'}
             </p>
           </CardContent>
         </Card>
@@ -98,7 +107,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
         <Card className="border-2 border-primary bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              投资回报率 ROI
+              {t('roi', language)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -106,7 +115,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
               {formatNumber(result.roi, 1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              年度投资回报
+              {language === 'zh' ? '年度投资回报' : 'Annual Return on Investment'}
             </p>
           </CardContent>
         </Card>
@@ -115,7 +124,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
       {/* 系统规模 */}
       <Card className="border-2 border-secondary">
         <CardHeader className="bg-secondary text-secondary-foreground">
-          <CardTitle>系统规模总览</CardTitle>
+          <CardTitle>{t('systemOverview', language)}</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -123,31 +132,31 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.totalPVCapacity, 1)} kW
               </div>
-              <div className="text-sm text-muted-foreground">光伏总容量</div>
+              <div className="text-sm text-muted-foreground">{t('pvCapacity', language)}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.totalStorageCapacity, 1)} kWh
               </div>
-              <div className="text-sm text-muted-foreground">储能总容量</div>
+              <div className="text-sm text-muted-foreground">{t('storageCapacity', language)}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.usableStorageCapacity, 1)} kWh
               </div>
-              <div className="text-sm text-muted-foreground">可用储能容量</div>
+              <div className="text-sm text-muted-foreground">{t('usableStorage', language)}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.totalChargingPower, 0)} kW
               </div>
-              <div className="text-sm text-muted-foreground">充电总功率</div>
+              <div className="text-sm text-muted-foreground">{t('chargingPower', language)}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.totalInverterCapacity, 0)} kW
               </div>
-              <div className="text-sm text-muted-foreground">逆变器总容量</div>
+              <div className="text-sm text-muted-foreground">{t('inverterCapacity', language)}</div>
             </div>
           </div>
         </CardContent>
@@ -156,7 +165,7 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
       {/* 发电量预测 */}
       <Card className="border-2 border-secondary">
         <CardHeader className="bg-secondary text-secondary-foreground">
-          <CardTitle>发电量预测</CardTitle>
+          <CardTitle>{t('generationForecast', language)}</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="grid gap-4 md:grid-cols-3">
@@ -164,19 +173,19 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.annualGeneration, 0)} kWh
               </div>
-              <div className="text-sm text-muted-foreground">年发电量</div>
+              <div className="text-sm text-muted-foreground">{t('annualGeneration', language)}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
                 {formatNumber(result.dailyGeneration, 1)} kWh
               </div>
-              <div className="text-sm text-muted-foreground">日均发电量</div>
+              <div className="text-sm text-muted-foreground">{language === 'zh' ? '日均发电量' : 'Daily Average Generation'}</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-foreground">
-                {formatNumber(result.pvEfficiencyPerSqm, 0)} kWh/m²/年
+                {formatNumber(result.pvEfficiencyPerSqm, 0)} kWh/m²/{language === 'zh' ? '年' : 'yr'}
               </div>
-              <div className="text-sm text-muted-foreground">每平方米发电量</div>
+              <div className="text-sm text-muted-foreground">{t('generationPerSqm', language)}</div>
             </div>
           </div>
         </CardContent>
@@ -185,33 +194,33 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
       {/* 投资成本明细 */}
       <Card className="border-2 border-secondary">
         <CardHeader className="bg-secondary text-secondary-foreground">
-          <CardTitle>投资成本明细</CardTitle>
+          <CardTitle>{t('investmentBreakdown', language)}</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">光伏系统</span>
-              <span className="font-medium">{formatCurrency(result.pvSystemCost)}</span>
+              <span className="text-muted-foreground">{t('pvSystemCost', language)}</span>
+              <span className="font-medium">{formatCurrency(result.pvSystemCost, currency, language)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">储能系统</span>
-              <span className="font-medium">{formatCurrency(result.storageSystemCost)}</span>
+              <span className="text-muted-foreground">{t('storageSystemCost', language)}</span>
+              <span className="font-medium">{formatCurrency(result.storageSystemCost, currency, language)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">充电桩系统</span>
-              <span className="font-medium">{formatCurrency(result.chargingSystemCost)}</span>
+              <span className="text-muted-foreground">{t('chargingSystemCost', language)}</span>
+              <span className="font-medium">{formatCurrency(result.chargingSystemCost, currency, language)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">逆变器</span>
-              <span className="font-medium">{formatCurrency(result.inverterCost)}</span>
+              <span className="text-muted-foreground">{t('inverterCost', language)}</span>
+              <span className="font-medium">{formatCurrency(result.inverterCost, currency, language)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">其他成本 (线缆、配电、土建等)</span>
-              <span className="font-medium">{formatCurrency(result.otherCosts)}</span>
+              <span className="text-muted-foreground">{language === 'zh' ? '其他成本（线缆、配电、土建等）' : 'Other costs (cabling, distribution, civil works, etc.)'}</span>
+              <span className="font-medium">{formatCurrency(result.otherCosts, currency, language)}</span>
             </div>
             <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4">
-              <span className="font-bold text-lg">总投资</span>
-              <span className="font-bold text-lg text-primary">{formatCurrency(result.totalInvestment)}</span>
+              <span className="font-bold text-lg">{t('totalInvestment', language)}</span>
+              <span className="font-bold text-lg text-primary">{formatCurrency(result.totalInvestment, currency, language)}</span>
             </div>
           </div>
         </CardContent>
@@ -221,21 +230,21 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-2 border-secondary">
           <CardHeader className="bg-secondary text-secondary-foreground">
-            <CardTitle>年度收益 (首年)</CardTitle>
+            <CardTitle>{language === 'zh' ? '年度收益（首年）' : 'Annual Revenue (Year 1)'}</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">充电服务收入</span>
-                <span className="font-medium text-primary">{formatCurrency(result.annualChargingRevenue)}</span>
+                <span className="text-muted-foreground">{t('chargingRevenue', language)}</span>
+                <span className="font-medium text-primary">{formatCurrency(result.annualChargingRevenue, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">电费节省</span>
-                <span className="font-medium text-primary">{formatCurrency(result.annualElectricitySavings)}</span>
+                <span className="text-muted-foreground">{t('electricitySavings', language)}</span>
+                <span className="font-medium text-primary">{formatCurrency(result.annualElectricitySavings, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4">
-                <span className="font-bold">年总收益</span>
-                <span className="font-bold text-primary">{formatCurrency(result.annualTotalRevenue)}</span>
+                <span className="font-bold">{t('totalRevenue', language)}</span>
+                <span className="font-bold text-primary">{formatCurrency(result.annualTotalRevenue, currency, language)}</span>
               </div>
             </div>
           </CardContent>
@@ -243,29 +252,36 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
 
         <Card className="border-2 border-secondary">
           <CardHeader className="bg-secondary text-secondary-foreground">
-            <CardTitle>年度成本与税务</CardTitle>
+            <CardTitle>{language === 'zh' ? '年度成本与税务' : 'Annual Costs & Taxes'}</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">运维成本</span>
-                <span className="font-medium">{formatCurrency(result.annualMaintenanceCost)}</span>
+                <span className="text-muted-foreground">{t('maintenanceCost', language)}</span>
+                <span className="font-medium">{formatCurrency(result.annualMaintenanceCost, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">保险成本</span>
-                <span className="font-medium">{formatCurrency(result.annualInsuranceCost)}</span>
+                <span className="text-muted-foreground">{t('insuranceCost', language)}</span>
+                <span className="font-medium">{formatCurrency(result.annualInsuranceCost, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">年折旧</span>
-                <span className="font-medium">{formatCurrency(result.annualDepreciation)}</span>
+                <span className="text-muted-foreground">{t('annualDepreciation', language)}</span>
+                <span className="font-medium">{formatCurrency(result.annualDepreciation, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">企业所得税</span>
-                <span className="font-medium">{formatCurrency(result.annualTax)}</span>
+                <span className="text-muted-foreground">{t('annualTax', language)}</span>
+                <span className="font-medium">{formatCurrency(result.annualTax, currency, language)}</span>
               </div>
               <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4">
-                <span className="font-bold">年净利润</span>
-                <span className="font-bold text-primary">{formatCurrency(result.annualNetProfit)}</span>
+                <span className="font-bold">{t('annualNetProfit', language)}</span>
+                {(() => {
+                  const profitFormatted = formatProfit(result.annualNetProfit, currency, language)
+                  return (
+                    <span className={`font-bold ${profitFormatted.className}`}>
+                      {profitFormatted.text}
+                    </span>
+                  )
+                })()}
               </div>
             </div>
           </CardContent>
@@ -273,97 +289,50 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
       </div>
 
       {/* LCOE */}
-      <Card className="border-2 border-secondary">
-        <CardHeader className="bg-secondary text-secondary-foreground">
-          <CardTitle>平准化度电成本 (LCOE)</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-primary">
-              {formatNumber(result.lcoe, 2)} CNY/kWh
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              项目全生命周期平均度电成本
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* IRR详细计算说明 */}
-      <Card className="border-2 border-secondary">
-        <CardHeader className="bg-secondary text-secondary-foreground">
-          <CardTitle>IRR 计算详情</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3">
-              <h4 className="font-medium">计算参数</h4>
-              <div className="text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">初始投资:</span>
-                  <span>{formatCurrency(result.totalInvestment)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">项目周期:</span>
-                  <span>{config.projectLifeYears} 年</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">贴现率:</span>
-                  <span>{config.discountRate}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">年衰减率:</span>
-                  <span>{config.annualDegradation}%</span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-medium">验证结果</h4>
-              <div className="text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">IRR精确值:</span>
-                  <span className="font-mono">{result.irr.toFixed(8)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">NPV@IRR:</span>
-                  <span className="font-mono">{irrVerification.npvAtIRR.toFixed(4)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">计算误差:</span>
-                  <span className="font-mono">{irrVerification.precision.toExponential(4)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">验证状态:</span>
-                  <Badge variant={irrVerification.isValid ? "default" : "destructive"}>
-                    {irrVerification.isValid ? "通过" : "需复核"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 p-3 bg-muted rounded-lg">
-            <p className="text-xs text-muted-foreground">
-              <strong>计算方法:</strong> 采用二分法确定初始范围，再使用牛顿-拉弗森法精化结果，
-              迭代精度设置为 1e-10。IRR 是使项目净现值 (NPV) 等于零的折现率，
-              即满足 NPV = -初始投资 + Σ(年现金流 / (1+IRR)^t) = 0 的 IRR 值。
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+  <Card className="border-2 border-secondary">
+    <CardHeader className="bg-secondary text-secondary-foreground">
+      <CardTitle>{t('lcoeTitle', language)}</CardTitle>
+    </CardHeader>
+    <CardContent className="pt-6">
+      <div className="text-center">
+        <div className="text-4xl font-bold text-primary">
+          {(() => {
+            // LCOE需要转换货币
+            const convertedLCOE = convertCurrency(result.lcoe, 'CNY', currency)
+            const locale = language === 'zh' ? 'zh-CN' : 'en-ZA'
+            if (currency === 'ZAR') {
+              return 'R' + convertedLCOE.toLocaleString(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }) + '/kWh'
+            } else {
+              return convertedLCOE.toLocaleString(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }) + ' CNY/kWh'
+            }
+          })()}
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+          {t('lcoeDesc', language)}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
 
       {/* IRR计算详情表格 */}
       <Card className="border-2 border-primary">
         <CardHeader className="bg-primary text-primary-foreground">
-          <CardTitle>IRR计算详细步骤</CardTitle>
+          <CardTitle>{t('irrStepTitle', language)}</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="mb-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium mb-2">IRR计算公式</h4>
+            <h4 className="font-medium mb-2">{t('irrFormula', language)}</h4>
             <div className="font-mono text-sm bg-background p-3 rounded border">
               NPV = CF₀ + CF₁/(1+r)¹ + CF₂/(1+r)² + ... + CF₂₅/(1+r)²⁵ = 0
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              其中: CF₀ = -初始投资, r = IRR, CFᵗ = 第t年净现金流
+              {language === 'zh' ? '其中' : 'where'}: CF₀ = -Initial Investment, r = IRR, CFₜ = Year t Net Cash Flow
             </p>
           </div>
 
@@ -371,36 +340,41 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left py-2 px-2">年份</th>
-                  <th className="text-right py-2 px-2">年现金流</th>
-                  <th className="text-right py-2 px-2">折现因子 (1/(1+r)ᵗ)</th>
-                  <th className="text-right py-2 px-2">折现现金流</th>
-                  <th className="text-right py-2 px-2">累计NPV</th>
+                  <th className="text-left py-2 px-2">{t('yearColumn', language)}</th>
+                  <th className="text-right py-2 px-2">{t('cashFlowColumn', language)}</th>
+                  <th className="text-right py-2 px-2">{language === 'zh' ? '折现因子 (1/(1+r)ᵗ)' : 'Discount Factor (1/(1+r)ᵗ)'}</th>
+                  <th className="text-right py-2 px-2">{t('discountedCashFlowColumn', language)}</th>
+                  <th className="text-right py-2 px-2">{t('cumulativeNpvColumn', language)}</th>
                 </tr>
               </thead>
               <tbody>
                 {(() => {
                   const cashFlows = [-result.totalInvestment, ...result.cashFlows.map(cf => cf.netCashFlow)]
                   const details = getIRRCalculationDetails(cashFlows, result.irr)
-                  return details.map((detail) => (
-                    <tr key={detail.year} className="border-b border-border hover:bg-muted/30">
-                      <td className="py-2 px-2">
-                        {detail.year === 0 ? '第0年' : `第${detail.year}年`}
-                      </td>
-                      <td className="text-right py-2 px-2 font-mono">
-                        {formatCurrency(detail.cashFlow)}
-                      </td>
-                      <td className="text-right py-2 px-2 font-mono">
-                        {detail.discountFactor.toFixed(6)}
-                      </td>
-                      <td className="text-right py-2 px-2 font-mono">
-                        {formatCurrency(detail.discountedCashFlow)}
-                      </td>
-                      <td className="text-right py-2 px-2 font-mono">
-                        {formatCurrency(detail.cumulativeNPV)}
-                      </td>
-                    </tr>
-                  ))
+                  return details.map((detail) => {
+                    const cfFormatted = formatProfit(detail.cashFlow, currency, language)
+                    const discCfFormatted = formatProfit(detail.discountedCashFlow, currency, language)
+                    const cumNpvFormatted = formatProfit(detail.cumulativeNPV, currency, language)
+                    return (
+                      <tr key={detail.year} className="border-b border-border hover:bg-muted/30">
+                        <td className="py-2 px-2">
+                          {formatYearLabel(detail.year)}
+                        </td>
+                        <td className="text-right py-2 px-2 font-mono">
+                          {cfFormatted.text}
+                        </td>
+                        <td className="text-right py-2 px-2 font-mono">
+                          {detail.discountFactor.toFixed(6)}
+                        </td>
+                        <td className="text-right py-2 px-2 font-mono">
+                          {discCfFormatted.text}
+                        </td>
+                        <td className="text-right py-2 px-2 font-mono">
+                          {cumNpvFormatted.text}
+                        </td>
+                      </tr>
+                    )
+                  })
                 })()}
               </tbody>
             </table>
@@ -408,11 +382,11 @@ export function ResultsSummary({ result, config }: ResultsSummaryProps) {
           
           <div className="mt-4 p-3 bg-primary/10 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="font-medium">IRR值:</span>
+              <span className="font-medium">{t('irrValue', language)}</span>
               <span className="font-bold text-lg text-primary">{result.irr.toFixed(4)}%</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              使用此折现率计算，最终累计NPV应接近0
+              {language === 'zh' ? '使用此折现率计算，最终累计NPV应接近0' : 'Using this discount rate, final cumulative NPV should approach 0'}
             </p>
           </div>
         </CardContent>

@@ -15,10 +15,13 @@ import {
   GCL_625W_SPECS,
   formatNumber
 } from "@/lib/calculations"
+import { useApp } from "@/lib/app-context"
+import { t, formatNumber as tFormatNumber } from "@/lib/i18n"
 
 export default function HomePage() {
   const [config, setConfig] = useState<SystemConfig>(SOUTH_AFRICA_DEFAULTS)
   const [activeTab, setActiveTab] = useState("system")
+  const { language, setLanguage, currency, setCurrency } = useApp()
   
   // 使用 useMemo 缓存计算结果 - 每当 config 变化时自动重新计算
   const result = useMemo(() => calculateInvestmentModel(config), [config])
@@ -43,35 +46,75 @@ export default function HomePage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">南非商业光储充投资模型</h1>
-              <p className="text-xs text-muted-foreground">Solar + Storage + Charging Investment Model</p>
+              <h1 className="text-lg font-bold text-foreground">{t('appTitle', language)}</h1>
+              <p className="text-xs text-muted-foreground">{t('appSubtitle', language)}</p>
             </div>
           </div>
-          <Button onClick={handleReset} variant="outline" className="border-secondary">
-            重置为默认值
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Language Switch */}
+            <div className="flex border border-border rounded-md overflow-hidden">
+              <Button
+                variant={language === 'zh' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none h-8 px-3"
+                onClick={() => setLanguage('zh')}
+              >
+                中文
+              </Button>
+              <Button
+                variant={language === 'en' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none h-8 px-3"
+                onClick={() => setLanguage('en')}
+              >
+                EN
+              </Button>
+            </div>
+            {/* Currency Switch */}
+            <div className="flex border border-border rounded-md overflow-hidden">
+              <Button
+                variant={currency === 'CNY' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none h-8 px-3"
+                onClick={() => setCurrency('CNY')}
+              >
+                CNY
+              </Button>
+              <Button
+                variant={currency === 'ZAR' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none h-8 px-3"
+                onClick={() => setCurrency('ZAR')}
+              >
+                ZAR
+              </Button>
+            </div>
+            <Button onClick={handleReset} variant="outline" className="border-secondary">
+              {t('resetDefaults', language)}
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
         {/* 光伏板规格说明 */}
         <div className="mb-8 rounded-lg border-2 border-primary bg-primary/5 p-6">
-          <h2 className="text-lg font-bold text-foreground mb-4">协鑫 625W 双玻型光伏板参数</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">{t('panelSpecsTitle', language)}</h2>
           <div className="grid gap-4 md:grid-cols-4">
             <div>
-              <span className="text-muted-foreground">单块功率：</span>
+              <span className="text-muted-foreground">{t('panelPower', language)}:</span>
               <span className="font-medium">{GCL_625W_SPECS.power}W</span>
             </div>
             <div>
-              <span className="text-muted-foreground">转换效率：</span>
+              <span className="text-muted-foreground">{t('panelEfficiency', language)}:</span>
               <span className="font-medium">{(GCL_625W_SPECS.efficiency * 100).toFixed(1)}%</span>
             </div>
             <div>
-              <span className="text-muted-foreground">单块面积：</span>
+              <span className="text-muted-foreground">{t('panelArea', language)}:</span>
               <span className="font-medium">{formatNumber(GCL_625W_SPECS.area, 2)} m²</span>
             </div>
             <div>
-              <span className="text-muted-foreground">当前配置总面积：</span>
+              <span className="text-muted-foreground">{t('totalPanelArea', language)}:</span>
               <span className="font-medium">{formatNumber(panelArea, 1)} m²</span>
             </div>
           </div>
@@ -84,47 +127,47 @@ export default function HomePage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-4 bg-muted">
                 <TabsTrigger value="system" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
-                  系统配置
+                  {t('systemSetup', language)}
                 </TabsTrigger>
                 <TabsTrigger value="financial" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
-                  财务参数
+                  {t('financialParams', language)}
                 </TabsTrigger>
                 <TabsTrigger value="results" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
-                  投资分析
+                  {t('investmentAnalysis', language)}
                 </TabsTrigger>
                 <TabsTrigger value="cashflow" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
-                  现金流
+                  {t('cashflowAnalysis', language)}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="system" className="space-y-6">
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">步骤 1：系统配置</h2>
-                  <p className="text-muted-foreground">配置光伏、储能、充电桩和逆变器的规格与数量，右侧实时显示计算结果</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('step1Title', language)}</h2>
+                  <p className="text-muted-foreground">{t('step1Desc', language)}</p>
                 </div>
                 <SystemInputs config={config} onChange={setConfig} />
               </TabsContent>
 
               <TabsContent value="financial" className="space-y-6">
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">步骤 2：财务参数</h2>
-                  <p className="text-muted-foreground">设置电价、税务和投资相关参数，所有修改实时反映在投资收益中</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('step2Title', language)}</h2>
+                  <p className="text-muted-foreground">{t('step2Desc', language)}</p>
                 </div>
                 <FinancialInputs config={config} onChange={setConfig} />
               </TabsContent>
 
               <TabsContent value="results" className="space-y-6">
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">投资收益分析</h2>
-                  <p className="text-muted-foreground">基于当前配置的投资回报指标和成本收益明细</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('investmentResultsTitle', language)}</h2>
+                  <p className="text-muted-foreground">{t('investmentResultsDesc', language)}</p>
                 </div>
                 <ResultsSummary result={result} config={config} />
               </TabsContent>
 
               <TabsContent value="cashflow" className="space-y-6">
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">现金流分析</h2>
-                  <p className="text-muted-foreground">25年项目周期现金流预测和图表分析</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('cashflowResultsTitle', language)}</h2>
+                  <p className="text-muted-foreground">{t('cashflowResultsDesc', language)}</p>
                 </div>
                 <CashFlowCharts result={result} />
               </TabsContent>
@@ -143,15 +186,15 @@ export default function HomePage() {
 
         {/* 底部说明 */}
         <div className="mt-12 rounded-lg border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-          <h3 className="font-bold text-foreground mb-2">重要说明</h3>
+          <h3 className="font-bold text-foreground mb-2">{t('importantNotes', language)}</h3>
           <ul className="list-disc list-inside space-y-1">
-            <li>本模型基于南非商业用电环境和税收政策设计</li>
-            <li>南非企业所得税率为 27%，增值税 (VAT) 为 15%</li>
-            <li>��再生能源投资在南非可享受加速折旧优惠政策</li>
-            <li>南非电网可靠性约 70%，储能系统可提供备用电源价值</li>
-            <li>所有计算结果仅供参考，实际投资需进行详细可行性研究</li>
-            <li>货币单位：人民币 (CNY)</li>
-            <li className="text-primary font-medium">数据实时联动：修改任何参数后，计算结果自动更新</li>
+            <li>{t('note1', language)}</li>
+            <li>{t('note2', language)}</li>
+            <li>{t('note3', language)}</li>
+            <li>{t('note4', language)}</li>
+            <li>{t('note5', language)}</li>
+            <li>{t('note6', language)}: {currency}</li>
+            <li className="text-primary font-medium">{t('note7', language)}</li>
           </ul>
         </div>
       </main>
@@ -159,8 +202,7 @@ export default function HomePage() {
       {/* 页脚 */}
       <footer className="border-t border-border bg-muted/30 py-6 mt-12">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>南非商业光储充投资经济模型计算器</p>
-          <p className="mt-1">South Africa Commercial PV + Storage + EV Charging Investment Model</p>
+          <p>{t('footerLine1', language)}</p>
         </div>
       </footer>
     </div>

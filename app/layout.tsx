@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { AppProvider } from '@/lib/app-context'
 
 export const metadata: Metadata = {
   title: '商业光储充投资经济模型',
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="bg-background">
       <body className="font-sans antialiased">
-        {children}
+        <AppProvider>
+          {children}
+        </AppProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
